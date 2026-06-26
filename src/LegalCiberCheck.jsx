@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { supabase } from "./supabase.js";
 
 // ── DATA ────────────────────────────────────────────────────────────────────
 
@@ -447,8 +448,16 @@ function QuestionScreen({ qIndex, total, question, catLabel, onAnswer, selectedA
 
 function EmailScreen({ score, onSubmit }) {
   const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
+  const [name, setName]   = useState("");
+  const [loading, setLoading] = useState(false);
   const risk = getRisk(score);
+
+  const handleSubmit = async () => {
+    if (!email || !name) return;
+    setLoading(true);
+    await onSubmit(email, name);
+    setLoading(false);
+  };
 
   return (
     <div style={s.card}>
@@ -481,9 +490,9 @@ function EmailScreen({ score, onSubmit }) {
           value={email} onChange={(e) => setEmail(e.target.value)} />
       </div>
 
-      <button onClick={() => onSubmit(email, name)} disabled={!email || !name}
-        style={{ ...s.btnPrimary, width: "100%", opacity: email && name ? 1 : 0.4 }}>
-        Ver informe completo gratuito
+      <button onClick={handleSubmit} disabled={!email || !name || loading}
+        style={{ ...s.btnPrimary, width: "100%", opacity: email && name && !loading ? 1 : 0.4 }}>
+        {loading ? "Guardando..." : "Ver informe completo gratuito"}
       </button>
       <p style={{ ...s.body, fontSize: 11, marginTop: 10, textAlign: "center" }}>
         Sin spam. Puede darse de baja en cualquier momento. Solo le enviaremos el informe y alertas regulatorias relevantes para su sector.
@@ -692,7 +701,21 @@ export default function LegalCiberCheck() {
   const [answers, setAnswers]       = useState({});
   const [selectedOpt, setSelectedOpt] = useState(null);
 
-  const handleStart = (type, name) => {
+  const handleEmailSubmit = async (email, name) => {
+    const { total } = calcScores(answers);
+    try {
+      await supabase.from("leads").insert({
+        email,
+        nombre:         name,
+        tipo_empresa:   firmType,
+        nombre_empresa: firmName || null,
+        score:          total,
+      });
+    } catch (err) {
+      console.error("Error guardando lead:", err);
+    }
+    setPhase("results");
+  };
     setFirmType(type); setFirmName(name); setPhase("questions");
   };
 
@@ -728,7 +751,7 @@ export default function LegalCiberCheck() {
       {phase === "email" && (
         <EmailScreen
           score={calcScores(answers).total}
-          onSubmit={() => setPhase("results")}
+          onSubmit={handleEmailSubmit}
         />
       )}
       {phase === "results" && (
