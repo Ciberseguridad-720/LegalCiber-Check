@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="6" fill="#185FA5"/>
+  <path d="M16 6 L26 11 L26 17 C26 22 21 26.5 16 28 C11 26.5 6 22 6 17 L6 11 Z"
+        fill="none" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+  <text x="16" y="21" text-anchor="middle" fill="white"
+        font-family="system-ui, sans-serif" font-size="9" font-weight="700">720</text>
+</svg>
